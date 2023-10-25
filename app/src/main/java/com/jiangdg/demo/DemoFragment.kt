@@ -29,6 +29,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -147,7 +148,7 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
         }
     }
 
-    private var mCameraMode = CaptureMediaView.CaptureMode.MODE_CAPTURE_PIC
+    private var mCameraMode = CaptureMediaView.CaptureMode.MODE_CAPTURE_VIDEO
 
     private lateinit var mViewBinding: FragmentDemoBinding
 
@@ -324,6 +325,7 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
 
     override fun getGravity(): Int = Gravity.CENTER
 
+    // note jin: 截图、录屏、录音
     override fun onViewClick(mode: CaptureMediaView.CaptureMode?) {
         if (! isCameraOpened()) {
             ToastUtils.show("camera not worked!")
@@ -585,6 +587,7 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
                     if (selectedIndex == index) {
                         return@listItemsSingleChoice
                     }
+                    // note jin: 更新分辨率
                     updateResolution(previewSizes[index].width, previewSizes[index].height)
                 }
             }
@@ -879,6 +882,8 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
     }
 
     override fun getCameraRequest(): CameraRequest {
+        Log.i(TAG, "getCameraRequest: ${getAllPreviewSizes()}")
+
         return CameraRequest.Builder()
             .setPreviewWidth(1920)
             .setPreviewHeight(1080)
