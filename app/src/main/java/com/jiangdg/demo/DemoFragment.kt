@@ -50,10 +50,12 @@ import com.jiangdg.demo.databinding.FragmentDemoBinding
 import com.jiangdg.ausbc.callback.ICaptureCallBack
 import com.jiangdg.ausbc.callback.IPlayCallBack
 import com.jiangdg.ausbc.camera.CameraUVC
+import com.jiangdg.ausbc.camera.bean.CameraRequest
 import com.jiangdg.ausbc.render.effect.EffectBlackWhite
 import com.jiangdg.ausbc.render.effect.EffectSoul
 import com.jiangdg.ausbc.render.effect.EffectZoom
 import com.jiangdg.ausbc.render.effect.bean.CameraEffect
+import com.jiangdg.ausbc.render.env.RotateType
 import com.jiangdg.ausbc.utils.*
 import com.jiangdg.ausbc.utils.bus.BusKey
 import com.jiangdg.ausbc.utils.bus.EventBus
@@ -165,14 +167,14 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
 
     override fun initData() {
         super.initData()
-        EventBus.with<Int>(BusKey.KEY_FRAME_RATE).observe(this, {
+        EventBus.with<Int>(BusKey.KEY_FRAME_RATE).observe(this) {
             mViewBinding.frameRateTv.text = "frame rate:  $it fps"
-        })
+        }
 
-        EventBus.with<Boolean>(BusKey.KEY_RENDER_READY).observe(this, { ready ->
-            if (! ready) return@observe
+        EventBus.with<Boolean>(BusKey.KEY_RENDER_READY).observe(this) { ready ->
+            if (!ready) return@observe
             getDefaultEffect()?.apply {
-                when(getClassifyId()) {
+                when (getClassifyId()) {
                     CameraEffect.CLASSIFY_ID_FILTER -> {
                         // check if need to set anim
                         val animId = MMKVUtils.getInt(KEY_ANIMATION, -99)
@@ -200,6 +202,7 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
                         }
                         MMKVUtils.set(KEY_FILTER, getId())
                     }
+
                     CameraEffect.CLASSIFY_ID_ANIMATION -> {
                         // check if need to set filter
                         val filterId = MMKVUtils.getInt(KEY_ANIMATION, -99)
@@ -227,10 +230,11 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
                         }
                         MMKVUtils.set(KEY_ANIMATION, getId())
                     }
+
                     else -> throw IllegalStateException("Unsupported classify")
                 }
             }
-        })
+        }
     }
 
     override fun onCameraState(
@@ -260,7 +264,7 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
     private fun handleCameraOpened() {
         mViewBinding.uvcLogoIv.visibility = View.GONE
         mViewBinding.frameRateTv.visibility = View.VISIBLE
-        mViewBinding.brightnessSb.max = (getCurrentCamera() as? CameraUVC)?.getBrightnessMax() ?: 100
+        mViewBinding.brightnessSb.max = (getCurrentCamera() as? CameraUVC)?.getBrightness() ?: 100
         mViewBinding.brightnessSb.progress = (getCurrentCamera() as? CameraUVC)?.getBrightness() ?: 0
         Logger.i(TAG, "max = ${mViewBinding.brightnessSb.max}, progress = ${mViewBinding.brightnessSb.progress}")
         mViewBinding.brightnessSb.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
@@ -872,6 +876,19 @@ class DemoFragment : CameraFragment(), View.OnClickListener, CaptureMediaView.On
             mBuilder.append(seconds)
         }
         return mBuilder.toString()
+    }
+
+    override fun getCameraRequest(): CameraRequest {
+        return CameraRequest.Builder()
+            .setPreviewWidth(1920)
+            .setPreviewHeight(1080)
+            .setRenderMode(CameraRequest.RenderMode.OPENGL)
+            .setDefaultRotateType(RotateType.ANGLE_0)
+            .setAudioSource(CameraRequest.AudioSource.SOURCE_SYS_MIC)
+            .setAspectRatioShow(true)
+            .setCaptureRawImage(false)
+            .setRawPreviewData(false)
+            .create();
     }
 
     companion object {
